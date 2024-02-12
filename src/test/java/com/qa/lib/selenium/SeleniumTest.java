@@ -15,9 +15,15 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @TestMethodOrder(OrderAnnotation.class)
+//DO NOT CALL IT data.sql/schema.sql
+@Sql(scripts = { "classpath:person-schema.sql", "classpath:person-data.sql","classpath:item-schema.sql", "classpath:item-data.sql"},
+
+	executionPhase = ExecutionPhase.BEFORE_TEST_CLASS)
 public class SeleniumTest {
 
 	private RemoteWebDriver driver;
@@ -45,10 +51,9 @@ public class SeleniumTest {
 		register.click();
 
 		WebElement created = this.driver
-				.findElement(By.cssSelector("#root > main > div > section:nth-child(1) > div:nth-child(3) > h3"));
+				.findElement(By.cssSelector("#root > main > div > section:nth-child(1) > div:nth-child(3) > h3:nth-child(2)"));
 		Assertions.assertEquals(customer, created.getText());
 	}
-
 	@Test
 	@Order(2)
 	void testGetCustomer() {
@@ -57,5 +62,26 @@ public class SeleniumTest {
 		WebElement created = this.driver
 				.findElement(By.cssSelector("#root > main > div > section:nth-child(1) > div:nth-child(3) > h3"));
 		Assertions.assertEquals("Barry", created.getText());
+	}
+	@Test
+	@Order(3)
+	void testItemTypeAndItemName() {
+	    this.driver.get("http://localhost:" + this.port);
+	    
+	    String itemType = "Harry Potter and the Philosophers Stone";
+	    WebElement testItemType = this.driver.findElement(
+	            By.cssSelector("#root > main > div > section:nth-child(2) > div:nth-child(2) > form > div > input:nth-child(1)"));
+	    testItemType.sendKeys(itemType);
+	    
+	    String itemName = "Best Seller Book";
+	    WebElement testItemName = this.driver.findElement(
+	            By.cssSelector("#root > main > div > section:nth-child(2) > div:nth-child(2) > form > div > input:nth-child(2)"));
+	    testItemName.sendKeys(itemName);
+	    
+	    WebElement register = this.driver.findElement(By.cssSelector("#root > main > div > section:nth-child(2) > div:nth-child(2) > form > div > button"));
+	    register.click();
+	    
+	    WebElement created = this.driver.findElement(By.cssSelector("#root > main > div > section:nth-child(2) > div:nth-child(3) > h3"));
+	    Assertions.assertEquals(itemName + " (" + itemType + ")", created.getText());
 	}
 }
