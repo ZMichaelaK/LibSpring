@@ -24,6 +24,10 @@ import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 @Sql(scripts = { "classpath:person-schema.sql", "classpath:person-data.sql","classpath:item-schema.sql", "classpath:item-data.sql"},
 
 	executionPhase = ExecutionPhase.BEFORE_TEST_CLASS)
+
+// DO NOT CALL IT data.sql/schema.sql
+@Sql(scripts = { "classpath:person-schema.sql",
+		"classpath:person-data.sql" }, executionPhase = ExecutionPhase.BEFORE_TEST_METHOD)
 public class SeleniumTest {
 
 	private RemoteWebDriver driver;
@@ -38,30 +42,30 @@ public class SeleniumTest {
 		this.driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
 	}
 
+    @Test
+    @Order(2)
+    void testCreateCustomer() {
+        this.driver.get("http://localhost:" + this.port);
+        String customer = "Barry";
+        WebElement name = this.driver.findElement(
+                By.cssSelector("#root > main > div > section:nth-child(1) > div:nth-child(2) > form > div > input"));
+        name.sendKeys(customer);
+
+        WebElement register = this.driver.findElement(By.cssSelector("#button-addon2"));
+        register.click();
+
+        WebElement created = this.driver.findElement(
+                By.cssSelector("#root > main > div > section:nth-child(1) > div:nth-child(3) > h3:nth-child(2)"));
+        Assertions.assertEquals(customer, created.getText());
+    }
 	@Test
 	@Order(1)
-	void testCreateCustomer() {
-		this.driver.get("http://localhost:" + this.port);
-		String customer = "Barry";
-		WebElement name = this.driver.findElement(
-				By.cssSelector("#root > main > div > section:nth-child(1) > div:nth-child(2) > form > div > input"));
-		name.sendKeys(customer);
-
-		WebElement register = this.driver.findElement(By.cssSelector("#button-addon2"));
-		register.click();
-
-		WebElement created = this.driver
-				.findElement(By.cssSelector("#root > main > div > section:nth-child(1) > div:nth-child(3) > h3:nth-child(2)"));
-		Assertions.assertEquals(customer, created.getText());
-	}
-	@Test
-	@Order(2)
 	void testGetCustomer() {
 		this.driver.get("http://localhost:" + this.port);
 
 		WebElement created = this.driver
 				.findElement(By.cssSelector("#root > main > div > section:nth-child(1) > div:nth-child(3) > h3"));
-		Assertions.assertEquals("Barry", created.getText());
+		Assertions.assertEquals("Piers", created.getText());
 	}
 	@Test
 	@Order(3)
